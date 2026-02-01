@@ -1,10 +1,16 @@
 const fsp = require('fs').promises
 const path = require('path')
-const { v4: uuidv4 } = require('uuid')
+const { randomUUID, randomBytes } = require('crypto')
 const { sessionFolderPath, baseWebhookURL } = require('./config')
 const { logger } = require('./logger')
 
 const WEBHOOKS_FILE = path.join(sessionFolderPath, 'webhooks.json')
+
+const newWebhookId = () => {
+  // Avoid `uuid` here: newer uuid versions publish ESM builds that break Jest CJS runs.
+  if (typeof randomUUID === 'function') return randomUUID()
+  return randomBytes(16).toString('hex')
+}
 
 // Known event types for validation
 const VALID_EVENT_TYPES = [
@@ -169,7 +175,7 @@ const addWebhook = async (sessionId, url, events = [], enabled = true) => {
 
   // Create webhook object
   const webhook = {
-    id: uuidv4(),
+    id: newWebhookId(),
     url,
     events,
     enabled,
