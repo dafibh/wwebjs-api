@@ -2,7 +2,7 @@ const express = require('express')
 const routes = express.Router()
 const swaggerUi = require('swagger-ui-express')
 const swaggerDocument = require('../swagger.json')
-const { enableSwaggerEndpoint } = require('./config')
+const { enableLocalCallbackExample, enableSwaggerEndpoint } = require('./config')
 
 const middleware = require('./middleware')
 const healthController = require('./controllers/healthController')
