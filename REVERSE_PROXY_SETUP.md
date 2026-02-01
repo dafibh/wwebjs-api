@@ -100,8 +100,9 @@ services:
       - TRUST_PROXY=true
       
       # Other configurations
-      - BASE_WEBHOOK_URL=https://api.yourdomain.com/webhook
+      - BASE_WEBHOOK_URL=https://api.yourdomain.com/api/v1/whatsapp/localCallbackExample
       - API_KEY=your_secure_api_key
+      - ENABLE_LOCAL_CALLBACK_EXAMPLE=false
       - ENABLE_SWAGGER_ENDPOINT=true
     volumes:
       - ./sessions:/usr/src/app/sessions

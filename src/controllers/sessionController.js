@@ -1,7 +1,7 @@
 const qr = require('qr-image')
-const { setupSession, deleteSession, reloadSession, validateSession, flushSessions, destroySession, sessions } = require('../sessions')
-const { sendErrorResponse, waitForNestedObject, exposeFunctionIfAbsent } = require('../utils')
-const { logger } = require('../logger')
+const { setupSession, deleteSession, reloadSession, validateSession, flushSessions, destroySession, sessions } = require('src/sessions')
+const { sendErrorResponse, waitForNestedObject, exposeFunctionIfAbsent } = require('src/utils')
+const { logger } = require('src/logger')
 
 /**
  * Starts a session for the given session ID.

@@ -1,6 +1,6 @@
-const { globalApiKey, rateLimitMax, rateLimitWindowMs } = require('./config')
-const { sendErrorResponse } = require('./utils')
-const { validateSession } = require('./sessions')
+const { globalApiKey, rateLimitMax, rateLimitWindowMs } = require('src/config')
+const { sendErrorResponse } = require('src/utils')
+const { validateSession } = require('src/sessions')
 const rateLimiting = require('express-rate-limit')
 
 const apikey = async (req, res, next) => {

@@ -1,8 +1,8 @@
-require('./routes')
+require('src/routes')
 const express = require('express')
 const cors = require('cors')
-const { routes } = require('./routes')
-const { maxAttachmentSize, basePath, trustProxy } = require('./config')
+const { routes } = require('src/routes')
+const { maxAttachmentSize, basePath, trustProxy } = require('src/config')
 
 const app = express()
 
@@ -17,14 +17,10 @@ if (trustProxy) {
 app.use(express.json({ limit: maxAttachmentSize + 1000000 }))
 app.use(express.urlencoded({ limit: maxAttachmentSize + 1000000, extended: true }))
 
-// Debug logging middleware - prints request URL and body
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`)
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Request Body:', JSON.stringify(req.body, null, 2))
-  }
-  next()
-})
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  credentials: true
+}))
 
 // Mount routes with configurable base path
 app.use(basePath, routes)

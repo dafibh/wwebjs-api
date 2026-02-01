@@ -43,7 +43,7 @@ cd wwebjs-api
 3. Run the Docker Compose:
 
 ```bash
-docker-compose pull && docker-compose up
+docker compose pull && docker compose up
 ```
 4. Visit http://localhost:3000/session/start/ABCD
 
@@ -183,7 +183,7 @@ ws.on('message', (data) => {
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Disclaimer
 
@@ -191,7 +191,7 @@ This project is not affiliated, associated, authorized, endorsed by, or in any w
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](./LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Star History
 

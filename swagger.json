@@ -51,6 +51,61 @@
         }
       }
     },
+    "/localCallbackExample": {
+      "post": {
+        "tags": [
+          "Various"
+        ],
+        "summary": "Local callback",
+        "description": "Used to generate a QR code and writes a log file. ONLY FOR DEVELOPMENT/TEST PURPOSES.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response message",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server Failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
     "/session/getSessions": {
       "get": {
         "tags": [

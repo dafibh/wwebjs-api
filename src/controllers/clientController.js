@@ -1,6 +1,6 @@
 const { MessageMedia, Location, Poll } = require('whatsapp-web.js')
-const { sessions } = require('../sessions')
-const { sendErrorResponse } = require('../utils')
+const { sessions } = require('src/sessions')
+const { sendErrorResponse } = require('src/utils')
 
 /**
  * Send a message to a chat using the WhatsApp API
