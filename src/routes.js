@@ -2,7 +2,7 @@ const express = require('express')
 const routes = express.Router()
 const swaggerUi = require('swagger-ui-express')
 const swaggerDocument = require('../swagger.json')
-const { enableLocalCallbackExample, enableSwaggerEndpoint } = require('./config')
+const { enableSwaggerEndpoint } = require('./config')
 
 const middleware = require('./middleware')
 const healthController = require('./controllers/healthController')
@@ -23,10 +23,6 @@ const webhookController = require('./controllers/webhookController')
 
 // API endpoint to check if server is alive
 routes.get('/ping', healthController.ping)
-// API basic callback
-if (enableLocalCallbackExample) {
-  routes.post('/localCallbackExample', [middleware.apikey, middleware.rateLimiter], healthController.localCallbackExample)
-}
 
 /**
  * ================
