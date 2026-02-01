@@ -2,10 +2,10 @@ const { Client, LocalAuth } = require('whatsapp-web.js')
 const fs = require('fs')
 const path = require('path')
 const sessions = new Map()
-const { baseWebhookURL, sessionFolderPath, maxAttachmentSize, setMessagesAsSeen, webVersion, webVersionCacheType, recoverSessions, chromeBin, headless, releaseBrowserLock } = require('src/config')
-const { triggerWebhook, waitForNestedObject, isEventEnabled, sendMessageSeenStatus, sleep, patchWWebLibrary } = require('src/utils')
-const { logger } = require('src/logger')
-const { initWebSocketServer, terminateWebSocketServer, triggerWebSocket } = require('src/websocket')
+const { baseWebhookURL, sessionFolderPath, maxAttachmentSize, setMessagesAsSeen, webVersion, webVersionCacheType, recoverSessions, chromeBin, headless, releaseBrowserLock } = require('./config')
+const { triggerWebhook, waitForNestedObject, isEventEnabled, sendMessageSeenStatus, sleep, patchWWebLibrary } = require('./utils')
+const { logger } = require('./logger')
+const { initWebSocketServer, terminateWebSocketServer, triggerWebSocket } = require('./websocket')
 
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {

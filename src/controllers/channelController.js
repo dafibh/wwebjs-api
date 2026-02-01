@@ -1,6 +1,6 @@
 const { MessageMedia } = require('whatsapp-web.js')
-const { sessions } = require('src/sessions')
-const { sendErrorResponse } = require('src/utils')
+const { sessions } = require('../sessions')
+const { sendErrorResponse } = require('../utils')
 
 /**
  * @function

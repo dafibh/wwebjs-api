@@ -1,7 +1,7 @@
 const { MessageMedia, Location, Poll } = require('whatsapp-web.js')
 const { Readable } = require('stream')
-const { sessions } = require('src/sessions')
-const { sendErrorResponse, decodeBase64 } = require('src/utils')
+const { sessions } = require('../sessions')
+const { sendErrorResponse, decodeBase64 } = require('../utils')
 
 /**
  * Get message by its ID from a given chat using the provided client.

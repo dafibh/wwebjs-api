@@ -1,8 +1,8 @@
 const fsp = require('fs').promises
 const qrcode = require('qrcode-terminal')
-const { sessionFolderPath } = require('src/config')
-const { sendErrorResponse } = require('src/utils')
-const { logger } = require('src/logger')
+const { sessionFolderPath } = require('../config')
+const { sendErrorResponse } = require('../utils')
+const { logger } = require('../logger')
 
 /**
  * Responds to request with 'pong'

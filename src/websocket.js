@@ -1,6 +1,6 @@
 const { WebSocketServer } = require('ws')
-const { enableWebSocket, basePath } = require('src/config')
-const { logger } = require('src/logger')
+const { enableWebSocket, basePath } = require('./config')
+const { logger } = require('./logger')
 const wssMap = new Map()
 
 // Function to initialize the WebSocket server if enabled

@@ -1,4 +1,4 @@
-const { logLevel } = require('src/config')
+const { logLevel } = require('./config')
 const pino = require('pino')
 
 const logger = pino({

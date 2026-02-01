@@ -1,8 +1,8 @@
-require('src/routes')
+require('./routes')
 const express = require('express')
 const cors = require('cors')
-const { routes } = require('src/routes')
-const { maxAttachmentSize, basePath, trustProxy } = require('src/config')
+const { routes } = require('./routes')
+const { maxAttachmentSize, basePath, trustProxy } = require('./config')
 
 const app = express()
 

@@ -1,5 +1,5 @@
-const { sessions } = require('src/sessions')
-const { sendErrorResponse } = require('src/utils')
+const { sessions } = require('../sessions')
+const { sendErrorResponse } = require('../utils')
 
 /**
  * Retrieves information about a WhatsApp contact by ID.
