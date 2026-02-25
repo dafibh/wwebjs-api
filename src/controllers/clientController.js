@@ -2,7 +2,7 @@ const { MessageMedia, Location, Poll } = require('whatsapp-web.js')
 const { sessions } = require('../sessions')
 const { sendErrorResponse } = require('../utils')
 const { maxAttachmentSize } = require('../config')
-const logger = require('../logger')
+const { logger } = require('../logger')
 
 /**
  * Send a message to a chat using the WhatsApp API
