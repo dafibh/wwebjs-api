@@ -1,6 +1,8 @@
 const { MessageMedia, Location, Poll } = require('whatsapp-web.js')
 const { sessions } = require('../sessions')
 const { sendErrorResponse } = require('../utils')
+const { maxAttachmentSize } = require('../config')
+const logger = require('../logger')
 
 /**
  * Send a message to a chat using the WhatsApp API
@@ -76,6 +78,10 @@ const sendMessage = async (req, res) => {
           if (!mimetype || !data) {
             return sendErrorResponse(res, 400, 'invalid media options')
           }
+          const mediaSizeBytes = Buffer.byteLength(data, 'base64')
+          if (mediaSizeBytes > maxAttachmentSize) {
+            return sendErrorResponse(res, 413, `Media size (${(mediaSizeBytes / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size (${(maxAttachmentSize / 1024 / 1024).toFixed(2)}MB). Increase MAX_ATTACHMENT_SIZE to allow larger files.`)
+          }
           sendOptions.media = new MessageMedia(mimetype, data, filename, filesize)
         }
         messageOut = await client.sendMessage(chatId, content, sendOptions)
@@ -86,6 +92,10 @@ const sendMessage = async (req, res) => {
         break
       }
       case 'MessageMedia': {
+        const mediaSizeBytes = Buffer.byteLength(content.data, 'base64')
+        if (mediaSizeBytes > maxAttachmentSize) {
+          return sendErrorResponse(res, 413, `Media size (${(mediaSizeBytes / 1024 / 1024).toFixed(2)}MB) exceeds the maximum allowed size (${(maxAttachmentSize / 1024 / 1024).toFixed(2)}MB). Increase MAX_ATTACHMENT_SIZE to allow larger files.`)
+        }
         const messageMedia = new MessageMedia(content.mimetype, content.data, content.filename, content.filesize)
         messageOut = await client.sendMessage(chatId, messageMedia, sendOptions)
         break
@@ -111,7 +121,11 @@ const sendMessage = async (req, res) => {
     }
     res.json({ success: true, message: messageOut })
   } catch (error) {
-    sendErrorResponse(res, 500, error.message)
+    const errorMessage = error.message?.length <= 3
+      ? `WhatsApp failed to send the message. This may be due to the file being too large for WhatsApp (max ~64MB for video, ~16MB for images). Original error: "${error.message}"`
+      : error.message
+    logger.error({ error: errorMessage, stack: error.stack, sessionId: req.params.sessionId }, 'sendMessage failed')
+    sendErrorResponse(res, 500, errorMessage)
   }
 }
 
