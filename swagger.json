@@ -1075,7 +1075,7 @@
           "Webhook"
         ],
         "summary": "Add webhook to session",
-        "description": "Add a new webhook to a session with optional event filtering. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
+        "description": "Add a new webhook to a session with optional event filtering. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
         "parameters": [
           {
             "name": "sessionId",
@@ -1172,7 +1172,7 @@
                   },
                   "events": {
                     "type": "array",
-                    "description": "Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
+                    "description": "Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
                     "items": {
                       "type": "string",
                       "enum": [
@@ -1191,6 +1191,7 @@
                         "message",
                         "message_ack",
                         "message_create",
+                        "message_sent",
                         "message_reaction",
                         "message_edit",
                         "message_ciphertext",
@@ -1231,7 +1232,7 @@
           "Webhook"
         ],
         "summary": "Update webhook",
-        "description": "Update an existing webhook configuration. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
+        "description": "Update an existing webhook configuration. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
         "parameters": [
           {
             "name": "sessionId",
@@ -1332,7 +1333,7 @@
                   },
                   "events": {
                     "type": "array",
-                    "description": "Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
+                    "description": "Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media",
                     "items": {
                       "type": "string",
                       "enum": [
@@ -1351,6 +1352,7 @@
                         "message",
                         "message_ack",
                         "message_create",
+                        "message_sent",
                         "message_reaction",
                         "message_edit",
                         "message_ciphertext",

@@ -29,6 +29,7 @@ const VALID_EVENT_TYPES = [
   'message',
   'message_ack',
   'message_create',
+  'message_sent',
   'message_reaction',
   'message_edit',
   'message_ciphertext',

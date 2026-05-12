@@ -150,7 +150,7 @@ const addSessionWebhook = async (req, res) => {
   /*
     #swagger.tags = ['Webhook']
     #swagger.summary = 'Add webhook to session'
-    #swagger.description = 'Add a new webhook to a session with optional event filtering. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media'
+    #swagger.description = 'Add a new webhook to a session with optional event filtering. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media'
     #swagger.requestBody = {
       required: true,
       content: {
@@ -166,10 +166,10 @@ const addSessionWebhook = async (req, res) => {
               },
               events: {
                 type: 'array',
-                description: 'Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media',
+                description: 'Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media',
                 items: { 
                   type: 'string',
-                  enum: ['auth_failure', 'authenticated', 'call', 'change_state', 'disconnected', 'group_join', 'group_leave', 'group_admin_changed', 'group_membership_request', 'group_update', 'loading_screen', 'media_uploaded', 'message', 'message_ack', 'message_create', 'message_reaction', 'message_edit', 'message_ciphertext', 'message_revoke_everyone', 'message_revoke_me', 'qr', 'ready', 'contact_changed', 'chat_removed', 'chat_archived', 'unread_count', 'vote_update', 'code', 'media']
+                  enum: ['auth_failure', 'authenticated', 'call', 'change_state', 'disconnected', 'group_join', 'group_leave', 'group_admin_changed', 'group_membership_request', 'group_update', 'loading_screen', 'media_uploaded', 'message', 'message_ack', 'message_create', 'message_sent', 'message_reaction', 'message_edit', 'message_ciphertext', 'message_revoke_everyone', 'message_revoke_me', 'qr', 'ready', 'contact_changed', 'chat_removed', 'chat_archived', 'unread_count', 'vote_update', 'code', 'media']
                 },
                 example: ['message', 'qr', 'ready']
               },
@@ -245,7 +245,7 @@ const updateSessionWebhook = async (req, res) => {
   /*
     #swagger.tags = ['Webhook']
     #swagger.summary = 'Update webhook'
-    #swagger.description = 'Update an existing webhook configuration. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media'
+    #swagger.description = 'Update an existing webhook configuration. Valid event types: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media'
     #swagger.requestBody = {
       required: true,
       content: {
@@ -260,10 +260,10 @@ const updateSessionWebhook = async (req, res) => {
               },
               events: {
                 type: 'array',
-                description: 'Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media',
+                description: 'Event types to send to this webhook. Empty array means all events. Valid events: auth_failure, authenticated, call, change_state, disconnected, group_join, group_leave, group_admin_changed, group_membership_request, group_update, loading_screen, media_uploaded, message, message_ack, message_create, message_sent, message_reaction, message_edit, message_ciphertext, message_revoke_everyone, message_revoke_me, qr, ready, contact_changed, chat_removed, chat_archived, unread_count, vote_update, code, media',
                 items: { 
                   type: 'string',
-                  enum: ['auth_failure', 'authenticated', 'call', 'change_state', 'disconnected', 'group_join', 'group_leave', 'group_admin_changed', 'group_membership_request', 'group_update', 'loading_screen', 'media_uploaded', 'message', 'message_ack', 'message_create', 'message_reaction', 'message_edit', 'message_ciphertext', 'message_revoke_everyone', 'message_revoke_me', 'qr', 'ready', 'contact_changed', 'chat_removed', 'chat_archived', 'unread_count', 'vote_update', 'code', 'media']
+                  enum: ['auth_failure', 'authenticated', 'call', 'change_state', 'disconnected', 'group_join', 'group_leave', 'group_admin_changed', 'group_membership_request', 'group_update', 'loading_screen', 'media_uploaded', 'message', 'message_ack', 'message_create', 'message_sent', 'message_reaction', 'message_edit', 'message_ciphertext', 'message_revoke_everyone', 'message_revoke_me', 'qr', 'ready', 'contact_changed', 'chat_removed', 'chat_archived', 'unread_count', 'vote_update', 'code', 'media']
                 },
                 example: ['message', 'ready']
               },

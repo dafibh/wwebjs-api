@@ -356,10 +356,16 @@ const initializeEvents = (client, sessionId) => {
     })
   }
 
-  if (isEventEnabled('message_create')) {
+  if (isEventEnabled('message_create') || isEventEnabled('message_sent')) {
     client.on('message_create', (message) => {
-      dispatchWebhooks('message_create', { message })
-      triggerWebSocket(sessionId, 'message_create', { message })
+      if (isEventEnabled('message_create')) {
+        dispatchWebhooks('message_create', { message })
+        triggerWebSocket(sessionId, 'message_create', { message })
+      }
+      if (isEventEnabled('message_sent') && message.fromMe) {
+        dispatchWebhooks('message_sent', { message })
+        triggerWebSocket(sessionId, 'message_sent', { message })
+      }
     })
   }
 
