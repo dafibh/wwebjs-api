@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import LogoutButton from './logout-button'
+import KeysPanel from './keys-panel'
 
 export default async function HomePage() {
   const session = await getSession()
@@ -22,8 +23,10 @@ export default async function HomePage() {
         </p>
       )}
 
-      <p className="muted" style={{ marginTop: 24 }}>
-        Next: sessions, API keys.
+      {session.role === 'user' && <KeysPanel />}
+
+      <p className="muted" style={{ marginTop: 40 }}>
+        Next: sessions.
       </p>
     </main>
   )
