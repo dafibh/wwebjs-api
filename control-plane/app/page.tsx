@@ -23,11 +23,13 @@ export default async function HomePage() {
         </p>
       )}
 
-      {session.role === 'user' && <KeysPanel />}
+      {session.role === 'user' && (
+        <p style={{ marginTop: 32 }}>
+          <a href="/sessions">WhatsApp sessions →</a>
+        </p>
+      )}
 
-      <p className="muted" style={{ marginTop: 40 }}>
-        Next: sessions.
-      </p>
+      {session.role === 'user' && <KeysPanel />}
     </main>
   )
 }

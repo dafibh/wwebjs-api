@@ -73,3 +73,12 @@ td.actions { display: flex; gap: 6px; justify-content: flex-end; }
 .reveal { background: #14241b; border: 1px solid #28503a; border-radius: 10px; padding: 16px; margin-top: 24px; font-size: 14px; }
 .reveal-pw { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 .reveal-pw code { background: #0f1115; padding: 8px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px; }
+
+.detail { padding: 16px; background: #0f1115; border-radius: 10px; }
+.hook { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-size: 13px; }
+.hook code { background: #15171c; padding: 4px 8px; border-radius: 6px; }
+.hook .logout { margin-left: auto; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: grid; place-items: center; padding: 24px; }
+.modal-card { background: #15171c; border: 1px solid #262a31; border-radius: 12px; padding: 24px; max-width: 360px; text-align: center; }
+.qr { width: 260px; height: 260px; background: white; border-radius: 8px; margin: 16px auto; display: block; object-fit: contain; }
