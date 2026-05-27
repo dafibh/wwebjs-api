@@ -11,8 +11,13 @@ function secret() {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Auth endpoints handle their own logic; everything else is gated here.
-  if (pathname.startsWith('/api/auth/') || PUBLIC_PATHS.has(pathname)) {
+  // Auth endpoints and the wwebjs proxy authenticate themselves (the proxy
+  // also accepts x-api-key, which has no cookie). Everything else is gated here.
+  if (
+    pathname.startsWith('/api/auth/') ||
+    pathname.startsWith('/api/wa/') ||
+    PUBLIC_PATHS.has(pathname)
+  ) {
     return NextResponse.next()
   }
 

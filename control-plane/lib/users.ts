@@ -83,6 +83,15 @@ export async function deleteUser(id: string) {
   await query('delete from users where id = $1', [id])
 }
 
+// Returns the quota (number | null=unlimited), or undefined if the user is gone.
+export async function getUserQuota(id: string): Promise<number | null | undefined> {
+  const r = await query<{ session_quota: number | null }>(
+    'select session_quota from users where id = $1',
+    [id]
+  )
+  return r.rows[0]?.session_quota
+}
+
 // Parse a quota value from request input.
 // number >= 1 -> that cap; null/'unlimited'/'' -> unlimited; anything else -> undefined (invalid).
 export function normalizeQuota(q: unknown): number | null | undefined {
