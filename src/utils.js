@@ -4,13 +4,22 @@ const { logger } = require('./logger')
 const ChatFactory = require('whatsapp-web.js/src/factories/ChatFactory')
 const Client = require('whatsapp-web.js').Client
 const { Chat, Message } = require('whatsapp-web.js/src/structures')
+const { getWebhooksForEvent } = require('./webhookManager')
 
-// Trigger webhook endpoint
+// Send a single webhook POST
+const sendWebhook = (webhookURL, sessionId, dataType, data) => {
+  axios.post(webhookURL, { dataType, data, sessionId }, { headers: { 'x-api-key': globalApiKey } })
+    .then(() => logger.debug({ sessionId, dataType, data: data || '' }, `Webhook message sent to ${webhookURL}`))
+    .catch(error => logger.error({ sessionId, dataType, err: error, data: data || '' }, `Failed to send webhook message to ${webhookURL}`))
+}
+
+// Trigger webhook endpoint. The first argument is kept for upstream call-site
+// compatibility but ignored: targets are resolved per-session from the webhook
+// manager (with env-var fallback), then fanned out.
 const triggerWebhook = (webhookURL, sessionId, dataType, data) => {
-  if (enableWebHook) {
-    axios.post(webhookURL, { dataType, data, sessionId }, { headers: { 'x-api-key': globalApiKey } })
-        .then(() => logger.debug({ sessionId, dataType, data: data || '' }, `Webhook message sent to ${webhookURL}`))
-        .catch(error => logger.error({ sessionId, dataType, err: error, data: data || '' }, `Failed to send webhook message to ${webhookURL}`))
+  if (!enableWebHook) return
+  for (const url of getWebhooksForEvent(sessionId, dataType)) {
+    sendWebhook(url, sessionId, dataType, data)
   }
 }
 
@@ -145,7 +154,7 @@ const patchWWebLibrary = async (client) => {
       const filteredChats = allChats.filter(chatFilter)
 
       return await Promise.all(
-          filteredChats.map(chat => window.WWebJS.getChatModel(chat))
+        filteredChats.map(chat => window.WWebJS.getChatModel(chat))
       )
     }
   })
