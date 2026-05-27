@@ -4,13 +4,14 @@ node_modules
 # Ignore dotenv files
 .env
 
-# Ignore sessions
-sessions
-sessions_test
+# Ignore sessions (anchored to repo root so nested dirs named "sessions"
+# — e.g. control-plane/app/sessions — are not accidentally ignored)
+/sessions
+/sessions_test
 .wwebjs_cache
 
 # Ignore webhook configurations (except the template)
-sessions/webhooks.json
+/sessions/webhooks.json
 
 # Ignore logs
 logs
