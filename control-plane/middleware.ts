@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-import { SESSION_COOKIE } from '@/lib/auth'
+import { SESSION_COOKIE } from '@/lib/constants'
 
 const PUBLIC_PATHS = new Set(['/login'])
 

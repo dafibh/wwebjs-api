@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'node:crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import { config } from '@/lib/config'
+import { SESSION_COOKIE } from '@/lib/constants'
 
-export const SESSION_COOKIE = 'cp_session'
+export { SESSION_COOKIE }
 const ALG = 'HS256'
 const MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
@@ -17,6 +19,15 @@ export type Session = {
 
 function secret() {
   return new TextEncoder().encode(config.jwtSecret)
+}
+
+// Unambiguous alphabet (no 0/O/1/I/l) for admin-relayed temp passwords.
+const PW_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+export function generateTempPassword(len = 14): string {
+  const bytes = randomBytes(len)
+  let out = ''
+  for (let i = 0; i < len; i++) out += PW_ALPHABET[bytes[i] % PW_ALPHABET.length]
+  return out
 }
 
 export function hashPassword(pw: string) {

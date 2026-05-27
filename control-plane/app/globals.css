@@ -59,3 +59,17 @@ button:disabled { opacity: 0.6; cursor: default; }
 .row { display: flex; justify-content: space-between; align-items: center; }
 .muted { color: #9aa0aa; font-size: 14px; }
 .logout { width: auto; margin: 0; padding: 8px 14px; background: #262a31; }
+
+.create { display: flex; gap: 10px; margin-top: 28px; align-items: stretch; }
+.create input { width: auto; flex: 1; }
+.create button { white-space: nowrap; }
+
+table.users { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 14px; }
+table.users th, table.users td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #262a31; }
+table.users th { color: #9aa0aa; font-weight: 500; font-size: 12px; }
+td.actions { display: flex; gap: 6px; justify-content: flex-end; }
+.logout.danger { background: #3a1d20; color: #ff8d8d; }
+
+.reveal { background: #14241b; border: 1px solid #28503a; border-radius: 10px; padding: 16px; margin-top: 24px; font-size: 14px; }
+.reveal-pw { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+.reveal-pw code { background: #0f1115; padding: 8px 12px; border-radius: 8px; font-size: 15px; letter-spacing: 1px; }

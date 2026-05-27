@@ -16,8 +16,14 @@ export default async function HomePage() {
         Signed in as <strong>{session.username}</strong> ({session.role})
       </p>
 
-      <p className="muted" style={{ marginTop: 32 }}>
-        Foundation ready. Next: sessions, API keys{session.role === 'admin' ? ', user admin' : ''}.
+      {session.role === 'admin' && (
+        <p style={{ marginTop: 32 }}>
+          <a href="/admin">User administration →</a>
+        </p>
+      )}
+
+      <p className="muted" style={{ marginTop: 24 }}>
+        Next: sessions, API keys.
       </p>
     </main>
   )

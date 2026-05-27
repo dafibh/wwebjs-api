@@ -28,3 +28,66 @@ export async function updatePassword(id: string, hash: string) {
     [hash, id]
   )
 }
+
+// ---- admin operations ----
+
+export type UserListItem = {
+  id: string
+  username: string
+  must_change_password: boolean
+  session_quota: number | null
+  created_at: string
+  last_login: string | null
+}
+
+export async function listUsers(): Promise<UserListItem[]> {
+  const r = await query<UserListItem>(
+    `select id, username, must_change_password, session_quota,
+            created_at, last_login
+       from users
+      order by created_at desc`
+  )
+  // Coerce timestamps to ISO strings so they serialize cleanly to the client.
+  return r.rows.map((u) => ({
+    ...u,
+    created_at: u.created_at ? new Date(u.created_at).toISOString() : u.created_at,
+    last_login: u.last_login ? new Date(u.last_login).toISOString() : null
+  }))
+}
+
+export async function createUser(
+  username: string,
+  passwordHash: string,
+  sessionQuota: number | null
+): Promise<string> {
+  const r = await query<{ id: string }>(
+    `insert into users (username, password_hash, session_quota, must_change_password)
+     values ($1, $2, $3, true) returning id`,
+    [username, passwordHash, sessionQuota]
+  )
+  return r.rows[0].id
+}
+
+export async function resetUserPassword(id: string, passwordHash: string) {
+  await query(
+    'update users set password_hash = $1, must_change_password = true where id = $2',
+    [passwordHash, id]
+  )
+}
+
+export async function updateUserQuota(id: string, quota: number | null) {
+  await query('update users set session_quota = $1 where id = $2', [quota, id])
+}
+
+export async function deleteUser(id: string) {
+  await query('delete from users where id = $1', [id])
+}
+
+// Parse a quota value from request input.
+// number >= 1 -> that cap; null/'unlimited'/'' -> unlimited; anything else -> undefined (invalid).
+export function normalizeQuota(q: unknown): number | null | undefined {
+  if (q === null || q === 'unlimited' || q === '') return null
+  const n = Number(q)
+  if (!Number.isInteger(n) || n < 1) return undefined
+  return n
+}
