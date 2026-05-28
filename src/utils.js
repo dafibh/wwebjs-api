@@ -1,5 +1,5 @@
 const axios = require('axios')
-const { globalApiKey, disabledCallbacks, enableWebHook } = require('./config')
+const { disabledCallbacks, enableWebHook } = require('./config')
 const { logger } = require('./logger')
 const ChatFactory = require('whatsapp-web.js/src/factories/ChatFactory')
 const Client = require('whatsapp-web.js').Client
@@ -8,7 +8,11 @@ const { getWebhooksForEvent } = require('./webhookManager')
 
 // Send a single webhook POST
 const sendWebhook = (webhookURL, sessionId, dataType, data) => {
-  axios.post(webhookURL, { dataType, data, sessionId }, { headers: { 'x-api-key': globalApiKey } })
+  // Do NOT include the global x-api-key. The webhook URL points at a
+  // user-controlled receiver (n8n etc), so we never leak the server key.
+  // Receivers should rely on the URL's non-guessable id (and their own
+  // auth on the receiving endpoint).
+  axios.post(webhookURL, { dataType, data, sessionId })
     .then(() => logger.debug({ sessionId, dataType, data: data || '' }, `Webhook message sent to ${webhookURL}`))
     .catch(error => logger.error({ sessionId, dataType, err: error, data: data || '' }, `Failed to send webhook message to ${webhookURL}`))
 }
