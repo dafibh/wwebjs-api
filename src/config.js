@@ -24,6 +24,9 @@ const enableWebSocket = process.env.ENABLE_WEBSOCKET ? (process.env.ENABLE_WEBSO
 const autoStartSessions = process.env.AUTO_START_SESSIONS ? (process.env.AUTO_START_SESSIONS).toLowerCase() === 'true' : true
 const basePath = process.env.BASE_PATH || '/'
 const trustProxy = process.env.TRUST_PROXY ? (process.env.TRUST_PROXY).toLowerCase() === 'true' : false
+const proxyUrl = process.env.PROXY_URL || null
+const proxyUsername = process.env.PROXY_USERNAME ?? null
+const proxyPassword = process.env.PROXY_PASSWORD ?? null
 
 module.exports = {
   servicePort,
@@ -47,5 +50,8 @@ module.exports = {
   enableWebSocket,
   autoStartSessions,
   basePath,
-  trustProxy
+  trustProxy,
+  proxyUrl,
+  proxyUsername,
+  proxyPassword
 }
