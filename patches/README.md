@@ -19,7 +19,9 @@ message `delete`, etc.) throws a minified `r` error and returns HTTP 500.
 - `normalizeSerialized(obj)` - mirrors `$1` onto `_serialized` on objects
   returned to Node so existing node-side code keeps reading `id._serialized`.
 
-Applied in `getMessageModel` / `getChatModel` and `Message` from/to/author.
+Applied in `getMessageModel` / `getChatModel`, `Message` from/to/author, and the
+`sendMessage` return (`Msg.get(newMsgKey._serialized)` returned `undefined` after
+the rename, so the send response came back with a null message id).
 
 **API contract:** unchanged. Responses keep every original field
 (`id._serialized`, `remote`, `id`, `fromMe`, `from`, `to`, ...). The only
