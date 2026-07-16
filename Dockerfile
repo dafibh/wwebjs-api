@@ -13,6 +13,7 @@ FROM base AS deps
 ARG USE_EDGE=false
 
 COPY package*.json ./
+COPY patches ./patches
 
 RUN if [ "$USE_EDGE" = "true" ]; then \
       apt-get update && apt-get install -y --no-install-recommends git ca-certificates && \
@@ -20,7 +21,16 @@ RUN if [ "$USE_EDGE" = "true" ]; then \
       npm install --save-exact git+https://github.com/pedroslopez/whatsapp-web.js.git#main && \
       apt-get purge -y git ca-certificates && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*; \
     else \
-      npm ci --only=production --ignore-scripts; \
+      apt-get update && apt-get install -y --no-install-recommends patch && \
+      npm ci --only=production --ignore-scripts && \
+      WWEBJS_VER="$(node -p 'require("/usr/src/app/node_modules/whatsapp-web.js/package.json").version')" && \
+      if [ "$WWEBJS_VER" = "1.34.7" ]; then \
+        echo "Applying WA 2.3000.1043xxx serialized-id compat patch to whatsapp-web.js@$WWEBJS_VER (see patches/README.md)" && \
+        patch -p1 -d node_modules/whatsapp-web.js < patches/whatsapp-web.js+1.34.7.patch; \
+      else \
+        echo "whatsapp-web.js is $WWEBJS_VER, not 1.34.7 - skipping local patch (see patches/README.md)"; \
+      fi && \
+      apt-get purge -y patch && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*; \
     fi
 
 # Create the final stage
