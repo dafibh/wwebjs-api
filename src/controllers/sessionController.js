@@ -247,6 +247,8 @@ const terminateSession = async (req, res) => {
   try {
     const validation = await validateSession(sessionId)
     if (validation.message === 'session_not_found') {
+      // Still run the cleanup, a stale session folder may be left on disk
+      await deleteSession(sessionId, validation)
       return res.json(validation)
     }
     await deleteSession(sessionId, validation)

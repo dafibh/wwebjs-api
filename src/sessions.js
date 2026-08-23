@@ -177,6 +177,24 @@ const setupSession = async (sessionId) => {
       const singletonLockPath = path.resolve(path.join(sessionFolderPath, `session-${sessionId}`, 'SingletonLock'))
       const singletonLockExists = await fs.promises.lstat(singletonLockPath).then(() => true).catch(() => false)
       if (singletonLockExists) {
+        // SingletonLock is a symlink named <hostname>-<pid>. Removing it while the profile
+        // is really in use lets a second browser share the same user-data-dir and corrupt
+        // it, which is how orphaned browsers piled up. The pid alone can't be trusted: it
+        // is often stale (left by a previous container) and pids get reused, so only treat
+        // the profile as busy when that process really is a browser on THIS profile.
+        const lockTarget = await fs.promises.readlink(singletonLockPath).catch(() => '')
+        const lockPid = Number.parseInt(lockTarget.split('-').pop(), 10)
+        let lockHolderAlive = false
+        if (Number.isInteger(lockPid) && lockPid > 0) {
+          const cmdline = await fs.promises.readFile(`/proc/${lockPid}/cmdline`, 'utf-8').catch(() => '')
+          const userDataDir = cmdline.split('\u0000')
+            .find(arg => arg.startsWith('--user-data-dir='))
+            ?.slice('--user-data-dir='.length)
+          lockHolderAlive = !!userDataDir && path.basename(userDataDir) === `session-${sessionId}`
+        }
+        if (lockHolderAlive) {
+          throw new Error(`Browser profile for ${sessionId} is still in use by pid ${lockPid}`)
+        }
         logger.warn({ sessionId }, 'Browser lock file exists, removing')
         await fs.promises.unlink(singletonLockPath)
       }
@@ -193,6 +211,14 @@ const setupSession = async (sessionId) => {
       await client.initialize()
     } catch (error) {
       logger.error({ sessionId, err: error }, 'Initialize error')
+      // Destroy the browser, otherwise it keeps holding the session profile folder
+      // and the next start attempt launches a second browser on the same profile
+      await client.destroy().catch((err) => {
+        logger.error({ sessionId, err }, 'Failed to destroy client after initialize error')
+      })
+      await terminateWebSocketServer(sessionId).catch((err) => {
+        logger.error({ sessionId, err }, 'Failed to terminate WebSocket server after initialize error')
+      })
       throw error
     }
 
@@ -200,6 +226,7 @@ const setupSession = async (sessionId) => {
     sessions.set(sessionId, client)
     return { success: true, message: 'Session initiated successfully', client }
   } catch (error) {
+    logger.error({ sessionId, err: error }, 'Failed to setup session')
     return { success: false, message: error.message, client: null }
   }
 }
@@ -543,39 +570,48 @@ const destroySession = async (sessionId) => {
 }
 
 const deleteSession = async (sessionId, validation) => {
-  try {
-    const client = sessions.get(sessionId)
-    if (!client) {
-      return
+  const client = sessions.get(sessionId)
+  if (!client) {
+    // No live client, but a stale profile folder may still be on disk. Leaving it
+    // there poisons every later session reusing this sessionId.
+    if (fs.existsSync(path.join(sessionFolderPath, `session-${sessionId}`))) {
+      logger.info({ sessionId }, 'Removing stale session folder with no active client')
+      await deleteSessionFolder(sessionId)
     }
-    client.pupPage?.removeAllListeners('close')
-    client.pupPage?.removeAllListeners('error')
-    try {
-      await terminateWebSocketServer(sessionId)
-    } catch (error) {
-      logger.error({ sessionId, err: error }, 'Failed to terminate WebSocket server')
-    }
-    if (validation.success) {
-      // Client Connected, request logout
-      logger.info({ sessionId }, 'Logging out session')
-      await client.logout()
-    } else if (validation.message === 'session_not_connected') {
-      // Client not Connected, request destroy
-      logger.info({ sessionId }, 'Destroying session')
-      await client.destroy()
-    }
-    // Wait 10 secs for client.pupBrowser to be disconnected before deleting the folder
-    let maxDelay = 0
-    while (client.pupBrowser.isConnected() && (maxDelay < 10)) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      maxDelay++
-    }
-    sessions.delete(sessionId)
-    await deleteSessionFolder(sessionId)
-  } catch (error) {
-    logger.error({ sessionId, err: error }, 'Failed to delete session')
-    throw error
+    return
   }
+  client.pupPage?.removeAllListeners('close')
+  client.pupPage?.removeAllListeners('error')
+  await terminateWebSocketServer(sessionId).catch((err) => {
+    logger.error({ sessionId, err }, 'Failed to terminate WebSocket server')
+  })
+
+  if (validation.success) {
+    // Best effort only. logout() unlinks the device on WhatsApp's side, but it throws
+    // when the page is already gone, and it throws *before* closing the browser, so it
+    // must never decide whether the rest of the cleanup runs.
+    logger.info({ sessionId }, 'Logging out session')
+    await client.logout().catch((err) => {
+      logger.warn({ sessionId, err }, 'Logout failed, destroying client anyway')
+    })
+  }
+
+  // Always destroy. This closes the browser in every state, including the ones
+  // validateSession reports as 'browser tab closed' or 'session closed', which
+  // previously fell through and left an orphan browser holding the profile.
+  await client.destroy().catch((err) => {
+    logger.error({ sessionId, err }, 'Failed to destroy client')
+  })
+
+  // Wait for the browser to actually disconnect before removing the profile folder
+  let maxDelay = 0
+  while (client.pupBrowser?.isConnected?.() && (maxDelay < 10)) {
+    await sleep(1000)
+    maxDelay++
+  }
+
+  sessions.delete(sessionId)
+  await deleteSessionFolder(sessionId)
 }
 
 // Function to handle session flush
