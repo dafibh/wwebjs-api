@@ -8,6 +8,29 @@ services:
     build: .
     container_name: wwebjs-api
     restart: always
+    # Hard memory cap: this service spawns a headless Chromium per WhatsApp
+    # session and can balloon unbounded. Without a limit it once thrashed the
+    # host into a swap-livelock hang (Jul 1 2026). Capping it means Docker
+    # OOM-kills + restarts only THIS container instead of freezing the box.
+    # earlyoom is the second line of defence. Raise if you see nuisance
+    # restarts under normal session load.
+    #
+    # ADDED 2026-08-21 (@Admin) -- this comment described the cap for weeks
+    # but no mem_limit/memswap_limit was actually present in this file
+    # (confirmed via `docker inspect`: Memory=0, no limit). Found after a real
+    # kernel OOM kill at 04:53:49Z today (~24GB anon-rss from one Chromium
+    # process, box has 31GB total) went undetected -- restarts=0, so nothing
+    # alerted; only visible in dmesg. earlyoom was also never installed
+    # (`systemctl is-active earlyoom` -> inactive, unit not found), so BOTH
+    # documented lines of defence were missing. 5 active WhatsApp sessions
+    # currently use 2.4GB combined, so 8GB is generous headroom above normal
+    # load while stopping a repeat of the July hang or tonight's OOM.
+    # memswap_limit == mem_limit disables extra swap for this container
+    # specifically, which is what directly prevents the swap-livelock failure
+    # mode the original comment names -- a capped process gets OOM-killed
+    # cleanly and fast instead of thrashing the host into swap.
+    mem_limit: 8g
+    memswap_limit: 8g
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     env_file: .env
