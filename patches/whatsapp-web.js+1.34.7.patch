@@ -52,7 +52,19 @@
       * Helper function that compares between two WWeb versions. Its purpose is to help the developer to choose the correct code implementation depending on the comparison value and the WWeb version.
       * @param {string} lOperand The left operand for the WWeb version string to compare with
       * @param {string} operator The comparison operator
-@@ -582,7 +627,7 @@
+@@ -482,6 +527,11 @@
+             ...botOptions,
+             ...extraOptions,
+         };
++
++        // MediaData is a model whose private __x_id field collides with Msg's
++        // internal id field when its enumerable properties are spread above,
++        // breaking getValidatedSender() during Msg initialization.
++        delete message.__x_id;
+ 
+         // Bot's won't reply if canonicalUrl is set (linking)
+         if (botOptions) {
+@@ -582,7 +632,7 @@
  
          return window
              .require('WAWebCollections')
@@ -61,7 +73,7 @@
      };
  
      window.WWebJS.editMessage = async (msg, content, options = {}) => {
-@@ -830,13 +875,13 @@
+@@ -830,13 +880,13 @@
  
          if (typeof msg.id.remote === 'object') {
              msg.id = Object.assign({}, msg.id, {
@@ -77,7 +89,7 @@
      };
  
      window.WWebJS.getChat = async (chatId, { getAsModel = true } = {}) => {
-@@ -953,7 +998,7 @@
+@@ -953,7 +1003,7 @@
              model.isGroup = true;
              const chatWid = window
                  .require('WAWebWidFactory')
@@ -86,7 +98,7 @@
              const groupMetadata =
                  window.require('WAWebCollections').GroupMetadata ||
                  window.require('WAWebCollections').WAWebGroupMetadataCollection;
-@@ -981,28 +1026,32 @@
+@@ -981,28 +1031,32 @@
  
          model.lastMessage = null;
          if (model.msgs && model.msgs.length) {

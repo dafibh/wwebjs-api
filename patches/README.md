@@ -27,6 +27,16 @@ the rename, so the send response came back with a null message id).
 (`id._serialized`, `remote`, `id`, `fromMe`, `from`, `to`, ...). The only
 difference is an additive raw `$1` field alongside `_serialized` (same value).
 
+**Also includes (media send fix):** WhatsApp Web build `2.3000.1047xxx`
+(seen 2026-09-17) gave the `MediaData` model its own private `__x_id`.
+`sendMessage` spreads the media model into the outgoing message, so that key
+overwrote the Msg's id and every media send (image, video, audio, document)
+failed with `Data passed to getter must include an id property (it's how we
+memoize) but got undefined`. Text sends were unaffected. Backports upstream PR
+[wwebjs/whatsapp-web.js#201923](https://github.com/wwebjs/whatsapp-web.js/pull/201923)
+(unmerged as of 2026-09-18): `delete message.__x_id` right after the message
+object is built.
+
 **Version guard:** the Dockerfile applies this patch only when the installed
 `whatsapp-web.js` is exactly `1.34.7`. Any other version is skipped with a log
 line, so bumping the dependency will not break the build.
