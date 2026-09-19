@@ -107,7 +107,7 @@ const sessionsHealth = async (req, res) => {
           example: {
             success: true,
             healthy: true,
-            sessions: [{ sessionId: 'main', status: 'ready', healthy: true, state: 'CONNECTED', startedAt: '2026-09-19T05:43:25.000Z', authenticatedAt: '2026-09-19T05:43:40.000Z', readyAt: '2026-09-19T05:43:41.000Z', lastMessageAt: '2026-09-19T05:53:42.000Z', watchdogRestarts: 0 }]
+            sessions: [{ sessionId: 'main', status: 'ready', healthy: true, state: 'CONNECTED', startedAt: '2026-09-19T05:43:25.000Z', authenticatedAt: '2026-09-19T05:43:40.000Z', readyAt: '2026-09-19T05:43:41.000Z', lastMessageAt: '2026-09-19T05:53:42.000Z', watchdogRestarts: 0, lastWatchdogRestartAt: null }]
           }
         }
       }

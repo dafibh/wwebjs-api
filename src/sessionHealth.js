@@ -21,7 +21,9 @@ const markStarted = (sessionId) => {
     authenticatedAt: null,
     readyAt: null,
     lastMessageAt: prev ? prev.lastMessageAt : null,
-    watchdogRestarts: prev ? prev.watchdogRestarts : 0
+    watchdogRestarts: prev ? prev.watchdogRestarts : 0,
+    // kept after recovery, so a self-heal stays visible
+    lastWatchdogRestartAt: prev ? prev.lastWatchdogRestartAt : null
   })
 }
 
@@ -42,6 +44,7 @@ const recordWatchdogFire = (sessionId) => {
   const rec = records.get(sessionId)
   if (!rec || rec.watchdogRestarts >= MAX_WATCHDOG_RESTARTS) return 'give_up'
   rec.watchdogRestarts++
+  rec.lastWatchdogRestartAt = Date.now()
   return 'restart'
 }
 
@@ -72,7 +75,8 @@ const evaluate = ({ sessionId, hasClient, state, hasQr, now = Date.now() }) => {
     authenticatedAt: iso(rec && rec.authenticatedAt),
     readyAt: iso(rec && rec.readyAt),
     lastMessageAt: iso(rec && rec.lastMessageAt),
-    watchdogRestarts: rec ? rec.watchdogRestarts : 0
+    watchdogRestarts: rec ? rec.watchdogRestarts : 0,
+    lastWatchdogRestartAt: iso(rec && rec.lastWatchdogRestartAt)
   }
 }
 

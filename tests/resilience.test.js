@@ -101,6 +101,13 @@ describe('ready watchdog', () => {
     expect(Client.instances).toHaveLength(2)
     expect(sessions.sessions.get('s1')).toBe(Client.instances[1])
     expect(sessionHealth.get('s1').watchdogRestarts).toBe(1)
+
+    // once the restarted client is ready the counter resets, the timestamp stays
+    Client.instances[1].emit('authenticated')
+    Client.instances[1].emit('ready')
+    const health = sessionHealth.evaluate({ sessionId: 's1', hasClient: true, state: 'CONNECTED' })
+    expect(health).toMatchObject({ status: 'ready', watchdogRestarts: 0 })
+    expect(health.lastWatchdogRestartAt).not.toBeNull()
   })
 
   it('leaves a session alone when ready follows authenticated', async () => {
