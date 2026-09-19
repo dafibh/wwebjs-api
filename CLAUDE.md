@@ -124,6 +124,16 @@ When `RECOVER_SESSIONS=TRUE`:
 - Automatically destroys and recreates sessions on failures
 - Prevents sessions from becoming permanently stuck
 
+### Startup Self-Healing and Health (`src/sessionHealth.js`)
+A session can show CONNECTED and still receive nothing if wwebjs's `attachEventListeners()` fails (no log, `ready` never fires). Always on, regardless of `RECOVER_SESSIONS`:
+- `restoreSessions()` waits for web.whatsapp.com to be reachable (max 10 min) and retries failed starts (30s, 2m, 5m)
+- Ready watchdog: if `ready` doesn't follow `authenticated` within 3 min, the session is restarted (max 3 times). QR-pending sessions never authenticate, so they are left alone
+- `GET /health/sessions` (API key): per-session `status`, 200 when all healthy, 503 otherwise. Use this, not `/ping` or `/session/status`, to check that sessions can receive events
+- Webhooks are retried only when the receiver never got them (no response, 502/503/504)
+
+### Library Patches (`patches/`)
+Version-guarded build-time patches for whatsapp-web.js 1.34.7 and puppeteer-core 24.38.0. See `patches/README.md` before bumping either dependency. Chromium is pinned in the Dockerfile (`CHROMIUM_VERSION`/`CHROMIUM_SNAPSHOT`).
+
 ### Message Handling
 - All messages emit `message` event
 - If `message.hasMedia` and size < `MAX_ATTACHMENT_SIZE`, automatically downloads media and emits `media` event
