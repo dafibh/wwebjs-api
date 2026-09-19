@@ -6,15 +6,35 @@ const Client = require('whatsapp-web.js').Client
 const { Chat, Message } = require('whatsapp-web.js/src/structures')
 const { getWebhooksForEvent } = require('./webhookManager')
 
+// Delays before each retry of a webhook the receiver never got. Covers n8n or the
+// Cloudflare tunnel still starting after a reboot.
+const WEBHOOK_RETRY_DELAYS_MS = [5 * 1000, 30 * 1000, 2 * 60 * 1000]
+
+// Only retry when the receiver cannot have processed the request: no response at all,
+// or a gateway saying it is unavailable. Anything else may already have run the
+// workflow, and retrying would run it twice.
+const isWebhookRetryable = (error) => {
+  const status = error.response?.status
+  return status === undefined ? !!error.request : [502, 503, 504].includes(status)
+}
+
 // Send a single webhook POST
-const sendWebhook = (webhookURL, sessionId, dataType, data) => {
+const sendWebhook = (webhookURL, sessionId, dataType, data, attempt = 0) => {
   // Do NOT include the global x-api-key. The webhook URL points at a
   // user-controlled receiver (n8n etc), so we never leak the server key.
   // Receivers should rely on the URL's non-guessable id (and their own
   // auth on the receiving endpoint).
   axios.post(webhookURL, { dataType, data, sessionId })
     .then(() => logger.debug({ sessionId, dataType, data: data || '' }, `Webhook message sent to ${webhookURL}`))
-    .catch(error => logger.error({ sessionId, dataType, err: error, data: data || '' }, `Failed to send webhook message to ${webhookURL}`))
+    .catch(error => {
+      if (isWebhookRetryable(error) && attempt < WEBHOOK_RETRY_DELAYS_MS.length) {
+        const retryInMs = WEBHOOK_RETRY_DELAYS_MS[attempt]
+        logger.warn({ sessionId, dataType, err: error.message, attempt: attempt + 1, retryInMs }, `Webhook to ${webhookURL} failed, retrying`)
+        setTimeout(() => sendWebhook(webhookURL, sessionId, dataType, data, attempt + 1), retryInMs).unref()
+        return
+      }
+      logger.error({ sessionId, dataType, err: error, data: data || '' }, `Failed to send webhook message to ${webhookURL}`)
+    })
 }
 
 // Trigger webhook endpoint. The first argument is kept for upstream call-site
@@ -168,6 +188,26 @@ const patchWWebLibrary = async (client) => {
   })
 }
 
+// Resolves once url answers with any HTTP status, or false after maxWaitMs
+const waitForInternet = async (url = 'https://web.whatsapp.com', maxWaitMs = 10 * 60 * 1000) => {
+  const deadline = Date.now() + maxWaitMs
+  let delay = 5000
+  for (;;) {
+    try {
+      await axios.head(url, { timeout: 10000, validateStatus: () => true })
+      return true
+    } catch (error) {
+      if (Date.now() + delay > deadline) {
+        logger.warn({ err: error.message }, 'Still no internet, starting sessions anyway')
+        return false
+      }
+      logger.warn({ err: error.message, retryInMs: delay }, 'Waiting for internet before starting sessions')
+      await sleep(delay)
+      delay = Math.min(delay * 2, 60 * 1000)
+    }
+  }
+}
+
 module.exports = {
   triggerWebhook,
   sendErrorResponse,
@@ -176,6 +216,7 @@ module.exports = {
   sendMessageSeenStatus,
   decodeBase64,
   sleep,
+  waitForInternet,
   exposeFunctionIfAbsent,
   patchWWebLibrary
 }

@@ -51,6 +51,71 @@
         }
       }
     },
+    "/health/sessions": {
+      "get": {
+        "tags": [
+          "Various"
+        ],
+        "summary": "Session health",
+        "description": "Per-session readiness. Returns 503 when any session on disk is not running, not ready, logged out or waiting for a QR scan.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All sessions healthy",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "healthy": true,
+                  "sessions": [
+                    {
+                      "sessionId": "main",
+                      "status": "ready",
+                      "healthy": true,
+                      "state": "CONNECTED",
+                      "startedAt": "2026-09-19T05:43:25.000Z",
+                      "authenticatedAt": "2026-09-19T05:43:40.000Z",
+                      "readyAt": "2026-09-19T05:43:41.000Z",
+                      "lastMessageAt": "2026-09-19T05:53:42.000Z",
+                      "watchdogRestarts": 0
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "apiKeyAuth": []
+          }
+        ]
+      }
+    },
     "/localCallbackExample": {
       "post": {
         "tags": [

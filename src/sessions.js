@@ -3,8 +3,9 @@ const fs = require('fs')
 const path = require('path')
 const sessions = new Map()
 const { baseWebhookURL, sessionFolderPath, maxAttachmentSize, setMessagesAsSeen, webVersion, webVersionCacheType, recoverSessions, chromeBin, headless, releaseBrowserLock, proxyUrl, proxyUsername, proxyPassword } = require('./config')
-const { triggerWebhook, waitForNestedObject, isEventEnabled, sendMessageSeenStatus, sleep, patchWWebLibrary } = require('./utils')
+const { triggerWebhook, waitForNestedObject, isEventEnabled, sendMessageSeenStatus, sleep, patchWWebLibrary, waitForInternet } = require('./utils')
 const { logger } = require('./logger')
+const sessionHealth = require('./sessionHealth')
 const { initWebSocketServer, terminateWebSocketServer, triggerWebSocket } = require('./websocket')
 
 // Function to validate if the session is ready
@@ -68,6 +69,10 @@ const restoreSessions = () => {
     }
     // Read the contents of the folder
     fs.readdir(sessionFolderPath, async (_, files) => {
+      // After a power cut the server is usually back before the router has internet.
+      // Starting sessions then fails every one of them, so wait for WhatsApp to be
+      // reachable first. Skipped with a proxy, which a direct check would not use.
+      if (!proxyUrl) await waitForInternet()
       // Iterate through the files in the parent folder
       for (const file of files) {
         // Use regular expression to extract the string from the folder name
@@ -75,13 +80,58 @@ const restoreSessions = () => {
         if (match) {
           const sessionId = match[1]
           logger.warn({ sessionId }, 'Existing session detected')
-          await setupSession(sessionId)
+          await startSessionWithRetry(sessionId)
         }
       }
     })
   } catch (error) {
     logger.error(error, 'Failed to restore sessions')
   }
+}
+
+// A failed start is retried in the background so one bad session does not hold up
+// the others, and does not stay down until the next manual or nightly restart
+const RESTORE_RETRY_DELAYS_MS = [30 * 1000, 2 * 60 * 1000, 5 * 60 * 1000]
+const startSessionWithRetry = async (sessionId, attempt = 0) => {
+  const result = await setupSession(sessionId)
+  if (result.success || sessions.has(sessionId)) return
+  if (attempt >= RESTORE_RETRY_DELAYS_MS.length) {
+    logger.error({ sessionId, attempts: attempt + 1 }, 'Giving up restoring session')
+    return
+  }
+  const retryInMs = RESTORE_RETRY_DELAYS_MS[attempt]
+  logger.warn({ sessionId, attempt: attempt + 1, retryInMs }, 'Session failed to start, retrying')
+  setTimeout(() => startSessionWithRetry(sessionId, attempt + 1), retryInMs).unref()
+}
+
+// If 'ready' never follows 'authenticated', wwebjs's listener setup failed: the
+// session shows CONNECTED and can send, but receives no events and nothing is logged.
+// Restart it, a limited number of times. Sessions waiting for a QR scan never
+// authenticate, so they are left alone.
+const watchReady = (client, sessionId) => {
+  let timer = null
+  client.on('authenticated', () => {
+    sessionHealth.markAuthenticated(sessionId)
+    if (timer || sessionHealth.get(sessionId)?.readyAt) return
+    timer = setTimeout(() => {
+      timer = null
+      if (sessions.get(sessionId) !== client || sessionHealth.get(sessionId)?.readyAt) return
+      if (sessionHealth.recordWatchdogFire(sessionId) === 'give_up') {
+        logger.error({ sessionId }, `Session never became ready after ${sessionHealth.MAX_WATCHDOG_RESTARTS} restarts, giving up`)
+        return
+      }
+      logger.error({ sessionId, attempt: sessionHealth.get(sessionId).watchdogRestarts }, 'Session authenticated but never became ready, restarting')
+      reloadSession(sessionId).catch((err) => {
+        logger.error({ sessionId, err }, 'Watchdog restart failed')
+      })
+    }, sessionHealth.READY_TIMEOUT_MS)
+    timer.unref()
+  })
+  client.on('ready', () => {
+    clearTimeout(timer)
+    timer = null
+    sessionHealth.markReady(sessionId)
+  })
 }
 
 // Setup Session
@@ -206,6 +256,8 @@ const setupSession = async (sessionId) => {
           logger.error({ sessionId, err }, 'Failed to patch WWebJS library')
         })
       })
+      sessionHealth.markStarted(sessionId)
+      watchReady(client, sessionId)
       initWebSocketServer(sessionId)
       initializeEvents(client, sessionId)
       await client.initialize()
@@ -355,6 +407,7 @@ const initializeEvents = (client, sessionId) => {
   }
 
   client.on('message', async (message) => {
+    sessionHealth.markMessage(sessionId)
     if (isEventEnabled('message')) {
       triggerWebhook(sessionWebhook, sessionId, 'message', { message })
       triggerWebSocket(sessionId, 'message', { message })
@@ -563,6 +616,7 @@ const destroySession = async (sessionId) => {
       maxDelay++
     }
     sessions.delete(sessionId)
+    sessionHealth.markStopped(sessionId)
   } catch (error) {
     logger.error({ sessionId, err: error }, 'Failed to stop session')
     throw error
@@ -611,6 +665,7 @@ const deleteSession = async (sessionId, validation) => {
   }
 
   sessions.delete(sessionId)
+  sessionHealth.remove(sessionId)
   await deleteSessionFolder(sessionId)
 }
 

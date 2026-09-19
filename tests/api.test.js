@@ -40,6 +40,19 @@ describe('API health checks', () => {
     expect(response.status).toBe(200)
     expect(response.body).toEqual({ message: 'pong', success: true })
   })
+
+  it('should require an API key for session health', async () => {
+    const app = setupFreshApp()
+    const response = await request(app).get('/health/sessions')
+    expect(response.status).toBe(403)
+  })
+
+  it('should report healthy session health with no sessions', async () => {
+    const app = setupFreshApp()
+    const response = await request(app).get('/health/sessions').set('x-api-key', TEST_API_KEY)
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({ success: true, healthy: true, sessions: [] })
+  })
 })
 
 describe('API session checks', () => {

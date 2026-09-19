@@ -23,6 +23,8 @@ const webhookController = require('./controllers/webhookController')
 
 // API endpoint to check if server is alive
 routes.get('/ping', healthController.ping)
+// API endpoint to check that every session finished starting and can receive events
+routes.get('/health/sessions', middleware.apikey, healthController.sessionsHealth)
 
 /**
  * ================

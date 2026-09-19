@@ -43,14 +43,25 @@ RUN if [ "$USE_EDGE" = "true" ]; then \
 # Create the final stage
 FROM base
 
+# Chromium is pinned. Unpinned, every rebuild pulled whatever Debian shipped that day
+# (151 -> 152 -> 153 in two days, Sep 2026) and a browser change broke session startup.
+# It comes from Debian's snapshot archive, still signature-checked by apt, so this exact
+# version stays installable after the live security repo moves on.
+# To upgrade, set both ARGs (the snapshot must contain that version).
+ARG CHROMIUM_VERSION=153.0.8010.47-2~deb12u1
+ARG CHROMIUM_SNAPSHOT=20260918T144605Z
+
 # Install system dependencies
-RUN apt-get update && \
+RUN echo "deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/${CHROMIUM_SNAPSHOT} bookworm-security main" \
+      > /etc/apt/sources.list.d/chromium-snapshot.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     fonts-freefont-ttf \
-    chromium \
+    chromium=${CHROMIUM_VERSION} \
+    chromium-common=${CHROMIUM_VERSION} \
     ffmpeg && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/chromium-snapshot.list
 
 # Copy only production dependencies from deps stage
 COPY --from=deps /usr/src/app/node_modules ./node_modules
