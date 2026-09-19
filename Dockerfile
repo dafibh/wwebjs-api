@@ -30,6 +30,13 @@ RUN if [ "$USE_EDGE" = "true" ]; then \
       else \
         echo "whatsapp-web.js is $WWEBJS_VER, not 1.34.7 - skipping local patch (see patches/README.md)"; \
       fi && \
+      PPTR_VER="$(node -p 'require("/usr/src/app/node_modules/puppeteer-core/package.json").version')" && \
+      if [ "$PPTR_VER" = "24.38.0" ]; then \
+        echo "Applying OOP iframe TargetCloseError backport to puppeteer-core@$PPTR_VER (see patches/README.md)" && \
+        patch -p1 -d node_modules/puppeteer-core < patches/puppeteer-core+24.38.0.patch; \
+      else \
+        echo "puppeteer-core is $PPTR_VER, not 24.38.0 - skipping local patch (see patches/README.md)"; \
+      fi && \
       apt-get purge -y patch && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*; \
     fi
 

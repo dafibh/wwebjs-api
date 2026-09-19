@@ -1,0 +1,54 @@
+--- a/lib/cjs/puppeteer/cdp/FrameManager.js
++++ b/lib/cjs/puppeteer/cdp/FrameManager.js
+@@ -214,17 +214,32 @@
+     frame(frameId) {
+         return this._frameTree.getById(frameId) || null;
+     }
+-    async addExposedFunctionBinding(binding) {
+-        this.#bindings.add(binding);
++    async #forEachFrame(action) {
+         await Promise.all(this.frames().map(async (frame) => {
+-            return await frame.addExposedFunctionBinding(binding);
++            try {
++                await action(frame);
++            }
++            catch (error) {
++                // Only an out-of-process frame has a session of its own to lose.
++                if (frame._client() === this.#client ||
++                    !(0, ErrorLike_js_1.isErrorLike)(error) ||
++                    !(0, Connection_js_1.isTargetClosedError)(error)) {
++                    throw error;
++                }
++            }
+         }));
+     }
++    async addExposedFunctionBinding(binding) {
++        this.#bindings.add(binding);
++        await this.#forEachFrame(frame => {
++            return frame.addExposedFunctionBinding(binding);
++        });
++    }
+     async removeExposedFunctionBinding(binding) {
+         this.#bindings.delete(binding);
+-        await Promise.all(this.frames().map(async (frame) => {
+-            return await frame.removeExposedFunctionBinding(binding);
+-        }));
++        await this.#forEachFrame(frame => {
++            return frame.removeExposedFunctionBinding(binding);
++        });
+     }
+     async evaluateOnNewDocument(source) {
+         const { identifier } = await this.mainFrame()
+@@ -234,9 +249,9 @@
+         });
+         const preloadScript = new CdpPreloadScript_js_1.CdpPreloadScript(this.mainFrame(), identifier, source);
+         this.#scriptsToEvaluateOnNewDocument.set(identifier, preloadScript);
+-        await Promise.all(this.frames().map(async (frame) => {
+-            return await frame.addPreloadScript(preloadScript);
+-        }));
++        await this.#forEachFrame(frame => {
++            return frame.addPreloadScript(preloadScript);
++        });
+         return { identifier };
+     }
+     async removeScriptToEvaluateOnNewDocument(identifier) {

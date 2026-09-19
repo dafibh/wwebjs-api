@@ -41,6 +41,30 @@ object is built.
 `whatsapp-web.js` is exactly `1.34.7`. Any other version is skipped with a log
 line, so bumping the dependency will not break the build.
 
+## `puppeteer-core+24.38.0.patch`
+
+**Why:** during page load WhatsApp Web briefly creates an out-of-process iframe.
+`page.exposeFunction` installs each binding into every frame, and when that
+iframe closes mid-call puppeteer throws
+`TargetCloseError: Protocol error (Page.addScriptToEvaluateOnNewDocument): Target closed`.
+wwebjs runs `attachEventListeners()` inside the `onAppStateHasSyncedEvent`
+callback, so the throw aborts it silently: `Msg.on('add')` is never registered,
+`ready` never fires, and the session looks CONNECTED but emits no `message` /
+`message_create` events (no webhooks). Seen on session `main` from 2026-09-18,
+failing about half of all starts; captured and verified 2026-09-19.
+
+**What it does:** backports upstream puppeteer commit
+[`e29c4e7`](https://github.com/puppeteer/puppeteer/commit/e29c4e7) (#15300,
+"do not fail a per-frame fan-out when an OOP iframe goes away") into the CJS
+build of puppeteer-core 24.38.0. Per-frame calls in `addExposedFunctionBinding`,
+`removeExposedFunctionBinding` and `evaluateOnNewDocument` now ignore a
+`TargetCloseError` from an out-of-process frame's own session. Errors from the
+main page session are still thrown. The fix only ships in puppeteer 25.x, and
+wwebjs 1.34.7 pins puppeteer to exactly 24.38.0.
+
+**Version guard:** applied only when the installed `puppeteer-core` is exactly
+`24.38.0`, otherwise skipped with a log line.
+
 ## How to revert
 
 Preferred: `git revert` the commit that introduced this directory (removes the
